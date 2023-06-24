@@ -62,7 +62,7 @@ client.on("messageCreate", (message) => {
         })
         .catch(console.error);
     }
-
+    console.log("This is a test commit");
     console.log(point_system);
     // send message to just the channel that the message was sent in
     message.channel.send("Points recorded for user id: " + test);
