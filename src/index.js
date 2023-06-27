@@ -3,12 +3,25 @@ dotenv.config();
 
 import { Client, GatewayIntentBits } from "discord.js";
 
-const point_system = [
-  {
-    username: "jessedelira",
-    points: 0,
-  },
-];
+const point_system = [];
+
+const checkIfUserExistsInPointSystem = (username) => {
+  let userExists = false;
+  point_system.forEach((user) => {
+    if (user.username === username) {
+      userExists = true;
+    }
+  });
+  return userExists;
+};
+
+const removeExtraInformationOnUserId = (preprocessedUserId) => {
+  // remove first two characters from user id
+  const usernameBeingGivenPointsWithoutPlus = preprocessedUserId.substring(2);
+  // remove last character from user id
+  const userGivenPointsId = usernameBeingGivenPointsWithoutPlus.slice(0, -1);
+  return userGivenPointsId;
+};
 
 const client = new Client({
   intents: [
@@ -22,50 +35,89 @@ const client = new Client({
 
 // Check to see if the message that was sent by user contains "+" and is not sent by a bot
 client.on("messageCreate", (message) => {
-  // Check if the message contains "hello" and is not sent by a bot
-  if (message.content.toLowerCase().includes("+") && !message.author.bot) {
-    const messageSplit = message.content.split(" ");
-    const usernameBeingGivenPoints = messageSplit[0];
-    // remove first two characters from usernameBeingGivenPoints
-    const usernameBeingGivenPointsWithoutPlus =
-      usernameBeingGivenPoints.substring(2);
-    const test = usernameBeingGivenPointsWithoutPlus.slice(0, -1);
-    const points = messageSplit[1].substring(1);
-    const guild = client.guilds.cache.get(message.guild.id);
+  if (message.content.includes("help") && !message.author.bot) {
+    message.channel.send(
+      "To add points to a user, type the following: <@user> +<number of points>"
+    );
+    message.channel.send(
+      "To see the leaderboard, type the following: point leaderboard"
+    );
+    message.channel.send(
+      "To initialize the point system, type the following: init"
+    );
+  }
 
-    console.log("User id being assigned points", test);
-    console.log("User points being assigned", points);
+  if (message.content.includes("init") && !message.author.bot) {
+    const guild = client.guilds.cache.get(message.guild.id);
 
     if (guild) {
       guild.members
         .fetch()
         .then((members) => {
-          members.forEach((member) => {
-            console.log(member.user.id);
-            console.log(test);
-            if (member.user.id == test) {
-              point_system.forEach((user) => {
-                if (user.username === member.user.username) {
-                  user.points = user.points + parseInt(points);
-                }
-              });
-            } else {
+          members.forEach((serverMember) => {
+            if (
+              checkIfUserExistsInPointSystem(serverMember.user.username) ===
+              false
+            ) {
               point_system.push({
-                username: member.user.username,
+                username: serverMember.user.username,
                 points: 0,
               });
             }
-
-            // console.log(member.user.username);
-            // console.log(member.user.id);
           });
         })
         .catch(console.error);
     }
-    console.log("This is a test commit");
-    console.log(point_system);
-    // send message to just the channel that the message was sent in
-    message.channel.send("Points recorded for user id: " + test);
+
+    message.channel.send(
+      "All current members of the server have been added to the point system. Let the toxic competition begin!"
+    );
+    message.channel.send(
+      "https://tenor.com/view/herewego-joker-darkknight-batman-heathledger-gif-5215603"
+    ); // Send gif of joker "And. here. we. go!"
+  }
+
+  if (message.content.includes("point leaderboard") && !message.author.bot) {
+    const sortedPointSystem = point_system.sort((a, b) => {
+      return b.points - a.points;
+    });
+
+    let leaderboard = "";
+    sortedPointSystem.forEach((user, index) => {
+      leaderboard += `${index + 1}. ${user.username} - ${user.points} points\n`;
+    });
+
+    message.channel.send(leaderboard);
+  } else {
+    if (message.content.toLowerCase().includes("+") && !message.author.bot) {
+      const messageSplit = message.content.split(" ");
+      const preprocessedUserId = messageSplit[0];
+      const processedUserId =
+        removeExtraInformationOnUserId(preprocessedUserId);
+
+      let points = messageSplit[1].substring(1);
+      const guild = client.guilds.cache.get(message.guild.id);
+
+      if (guild) {
+        guild.members
+          .fetch()
+          .then((members) => {
+            members.forEach((serverMember) => {
+              if (serverMember.user.id === processedUserId) {
+                point_system.forEach((user) => {
+                  if (serverMember.user.username === user.username) {
+                    user.points = user.points + parseInt(points);
+                    points = null;
+                  }
+                });
+              }
+            });
+          })
+          .catch(console.error);
+      }
+
+      message.channel.send("Points recorded for user: " + preprocessedUserId);
+    }
   }
 });
 
