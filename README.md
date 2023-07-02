@@ -18,3 +18,6 @@ This is a Discord bot that allows users to create and manage **toxic** points fo
 4. Create the database tables/migration
     1. `npx sequelize-cli db:migrate`
 5. Run the bot
+
+## Notes
+** MUST BE USING NODE VERSION v18.16.1 **
