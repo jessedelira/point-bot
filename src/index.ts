@@ -1,46 +1,52 @@
-// import dotenv from "dotenv";
-// import { Client, GatewayIntentBits } from "discord.js";
-// import { addCommand, execute } from "./commands/add.js";
-// import { initCommand, executeInit } from "./commands/init.js";
-// dotenv.config();
+import dotenv from 'dotenv';
+import { Client, GatewayIntentBits } from 'discord.js';
+import { addCommand, execute } from './commands/add.js';
+import { initCommand, executeInit } from './commands/init.js';
+dotenv.config();
 
+const client = new Client({
+	intents: [
+		GatewayIntentBits.Guilds,
+		GatewayIntentBits.GuildMessages,
+		GatewayIntentBits.GuildMembers,
+		GatewayIntentBits.DirectMessages,
+		GatewayIntentBits.MessageContent,
+	],
+});
 
+// The ready event is vital, it means that only _after_ this will your bot start reacting to information
+client.on('ready', async () => {
+	const guildId = '206217346388328458';
+	const guild = client.guilds.cache.get(guildId);
+	if (!guild) return console.log(`Guild with ID ${guildId} not found.`);
 
-// const client = new Client({
-//   intents: [
-//     GatewayIntentBits.Guilds,
-//     GatewayIntentBits.GuildMessages,
-//     GatewayIntentBits.GuildMembers,
-//     GatewayIntentBits.DirectMessages,
-//     GatewayIntentBits.MessageContent,
-//   ],
-// });
+	await guild.commands.create(addCommand);
+	await guild.commands.create(initCommand);
+});
 
-// // The ready event is vital, it means that only _after_ this will your bot start reacting to information
-// client.on("ready", async () => {
-//   const guildId = "206217346388328458";
-//   const guild = client.guilds.cache.get(guildId);
-//   if (!guild) return console.log(`Guild with ID ${guildId} not found.`);
+client.on('interactionCreate', async (interaction: any) => {
+	if (!interaction.isCommand()) return;
 
-//   await guild.commands.create(addCommand);
-//   await guild.commands.create(initCommand);
-// });
+	if (interaction.commandName === 'add') {
+		await execute(interaction);
+	}
 
-// client.on("interactionCreate", async (interaction) => {
-//   if (!interaction.isCommand()) return;
+	if (
+		interaction.commandName === 'init' &&
+		(interaction.user.username === 'diraq' ||
+			interaction.user.username === 'jessedelira')
+	) {
+		const guildId = '206217346388328458';
+		await executeInit(interaction, guildId, client);
+	}
 
-//   if (interaction.commandName === "add") {
-//     await execute(interaction);
-//   }
+	// TODO: Add leaderboard command
 
-//   if (interaction.commandName === 'init') {
-//     const guildId = "206217346388328458";
-//     await executeInit(interaction, guildId, client);
-//   }
-// });
+	// TODO: Add help command
+});
 
-// // Check to see if the message that was sent by user contains "+" and is not sent by a bot
-// client.on("messageCreate", (message) => {
+// Check to see if the message that was sent by user contains "+" and is not sent by a bot
+// client.on("messageCreate", (message: any) => {
 //   if (
 //     message.content.includes("help") &&
 //     !message.author.bot &&
@@ -142,7 +148,5 @@
 //   // }
 // });
 
-// client.login(process.env.DISCORD_TOKEN);
-// console.log("Bot is running...");
-
-console.log("Hello World!");
+client.login(process.env.DISCORD_TOKEN);
+console.log('Bot is running...');
