@@ -2,6 +2,10 @@ import dotenv from 'dotenv';
 import { Client, GatewayIntentBits } from 'discord.js';
 import { addCommand, execute } from './commands/add.js';
 import { initCommand, executeInit } from './commands/init.js';
+import {
+	leaderboardCommand,
+	executeLeaderboard,
+} from './commands/leaderboard.js';
 dotenv.config();
 
 const client = new Client({
@@ -22,6 +26,7 @@ client.on('ready', async () => {
 
 	await guild.commands.create(addCommand);
 	await guild.commands.create(initCommand);
+	await guild.commands.create(leaderboardCommand);
 });
 
 client.on('interactionCreate', async (interaction: any) => {
@@ -40,7 +45,13 @@ client.on('interactionCreate', async (interaction: any) => {
 		await executeInit(interaction, guildId, client);
 	}
 
-	// TODO: Add leaderboard command
+	if (
+		interaction.commandName === 'leaderboard' &&
+		(interaction.user.username === 'diraq' ||
+			interaction.user.username === 'jessedelira')
+	) {
+		await executeLeaderboard(interaction);
+	}
 
 	// TODO: Add help command
 });

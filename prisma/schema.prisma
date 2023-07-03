@@ -20,7 +20,7 @@ model Member {
 model PointRecord {
   id       String @id @default(cuid())
   amount   Int
-  reason   String
+  reason   String?
   member   Member @relation(fields: [memberId], references: [id])
   memberId String
 
