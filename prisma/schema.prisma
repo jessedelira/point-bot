@@ -14,6 +14,7 @@ model Member {
   id          String        @id @default(cuid())
   username    String        @unique
   strikes     Int           @default(0)
+  discordId   String        @unique
   PointRecord PointRecord[]
 }
 

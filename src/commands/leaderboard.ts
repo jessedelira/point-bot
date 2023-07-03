@@ -10,7 +10,9 @@ const executeLeaderboard = async (interaction: any) => {
 	const leaderboard = await getLeaderboard();
 	await interaction.reply(leaderboard);
 };
-
+const formatDiscordId = (discordId: string) => {
+	return `<@${discordId}>`;
+};
 const getLeaderboard = async () => {
 	const resultFromPointRecord = await prisma.pointRecord.groupBy({
 		by: ['memberId'],
@@ -44,9 +46,12 @@ const getLeaderboard = async () => {
 	});
 
 	const leaderboardString = leaderboard.map((record: any, index: number) => {
-		return `${index + 1}. ${record.member.username}: ${record._sum.amount}`;
+		return `${index + 1}. ${formatDiscordId(record.member.discordId)}: ${
+			record._sum.amount
+		}`;
 	});
 
 	return leaderboardString.join('\n');
 };
+
 export { leaderboardCommand, executeLeaderboard };

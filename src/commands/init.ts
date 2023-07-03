@@ -15,7 +15,13 @@ const executeInit = async (interaction: any, guildId: string, client: any) => {
 			.fetch()
 			.then((members: any) => {
 				members.forEach((serverMember: any) => {
-					addMember(serverMember.user.username, 0);
+					// serverMember = Id of the user with @
+					// serverMember.user = Id of the user with @
+					addMember(
+						serverMember.user.username,
+						0,
+						serverMember.user.id,
+					);
 				});
 			})
 			.catch(console.error); // Will error out here if you try to /init twice
@@ -26,22 +32,20 @@ const executeInit = async (interaction: any, guildId: string, client: any) => {
 			'\n' +
 			'https://tenor.com/view/herewego-joker-darkknight-batman-heathledger-gif-5215603',
 	);
-
-	// message.channel.send(
-	//     "All current members of the server have been added to the point system. Let the toxic competition begin!"
-	// );
-	// message.channel.send(
-	//     "https://tenor.com/view/herewego-joker-darkknight-batman-heathledger-gif-5215603"
-	// ); // Send gif of joker "And. here. we. go!"
 };
 
 export { initCommand, executeInit };
 
-const addMember = async (username: string, strikes: number) => {
+const addMember = async (
+	username: string,
+	strikes: number,
+	discordId: string,
+) => {
 	const newMember = await prisma.member.create({
 		data: {
 			username,
 			strikes,
+			discordId,
 		},
 	});
 	console.log(`New member created with ID: ${newMember.id}`);
